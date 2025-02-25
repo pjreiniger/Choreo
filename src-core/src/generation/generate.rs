@@ -115,13 +115,8 @@ pub fn generate(
     mut trajectory_file: TrajectoryFile,
     handle: i64,
 ) -> ChoreoResult<TrajectoryFile> {
-    // println!("\n\nCalling the common generate....");
-    println!("\n\n\n{:?}\n\n", chor);
-    // println!("\n\n\n {:?}\n\n", trajectory_file);
     set_initial_guess(&mut trajectory_file);
     adjust_headings(&mut trajectory_file)?;
-
-    // println!("\n\n\n {:?}", trajectory_file);
 
     let mut gen = TrajectoryFileGenerator::new(chor, trajectory_file, handle);
 
@@ -130,9 +125,5 @@ pub fn generate(
     gen.add_omni_transformer::<ConstraintSetter>();
     gen.add_omni_transformer::<CallbackSetter>();
 
-    let output = gen.generate();
-    let xxxx = output.unwrap();
-    println!("\n\nAfter Generate....{:?}", xxxx.params.waypoints);
-
-    Ok(xxxx)
+    gen.generate()
 }

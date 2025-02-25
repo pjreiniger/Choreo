@@ -124,7 +124,6 @@ pub async fn read_all_trajectory(app_handle: tauri::AppHandle) -> Vec<Trajectory
 #[tauri::command]
 pub async fn write_trajectory(app_handle: tauri::AppHandle, trajectory: TrajectoryFile) {
     let resources = app_handle.state::<WritingResources>();
-    println!("WRITING TRAJECTORY\n{:?}", trajectory.params.waypoints);
     file_management::write_trajectory_file(&resources, trajectory).await;
 }
 
@@ -183,7 +182,6 @@ pub async fn generate_remote(
     trajectory: TrajectoryFile,
     handle: i64,
 ) -> TauriResult<TrajectoryFile> {
-    tracing::error!("Generate Remote parent thing....");
     let remote_resources = app_handle.state::<RemoteGenerationResources>();
     use choreo_core::generation::remote::remote_generate_parent;
     debug_result!(remote_generate_parent(&remote_resources, project, trajectory, handle).await);

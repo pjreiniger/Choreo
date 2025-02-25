@@ -218,9 +218,6 @@ fn postprocess(
     project: ProjectFile,
     counts_vec: Vec<usize>,
 ) -> TrajectoryFile {
-    println!("--------------------------------------------");
-    println!("POST PROCESS");
-    println!("--------------------------------------------");
     let mut snapshot = path.params.snapshot();
     path.params
         .waypoints

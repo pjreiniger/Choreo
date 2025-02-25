@@ -155,8 +155,6 @@ pub fn remote_generate_child(args: RemoteArgs) {
 
     match generate(project, trajectory, 0i64) {
         Ok(trajectory) => {
-            println!("In the first ok....\n{:?}", trajectory.params.waypoints);
-
             let ser_string = serde_json::to_string(&RemoteProgressUpdate::CompleteTrajectory(
                 trajectory.trajectory,
             ))
@@ -320,15 +318,13 @@ pub async fn remote_generate_parent(
                                 );
                             },
                             Ok(RemoteProgressUpdate::CompleteTrajectory(trajectory)) => {
-                                // println!("------------------------------IN THE OTHER COMEPLETE TRAJECTOR\n------------------------------\n{:?}", trajectory.waypoints);
-                                let bloop =
+                                break Ok(
                                     TrajectoryFile {
                                         trajectory,
                                         snapshot: Some(trajectory_file.params.snapshot()),
                                         .. trajectory_file
-                                    };
-                                println!("------------------------------IN THE OTHER COMEPLETE TRAJECTORYYYY\n------------------------------\n{:?}", bloop.params.waypoints);
-                                break Ok(bloop);
+                                    }
+                                );
                             },
                             Ok(RemoteProgressUpdate::Error(e)) => {
                                 break Err(ChoreoError::remote(e));

@@ -9,20 +9,9 @@ use choreo_core::{
     file_management::{self, WritingResources},
     generation::generate::generate,
     ChoreoError,
-    spec::{
-        project::ProjectFile,
-        trajectory::{Sample, Trajectory, TrajectoryFile},
-    },
 };
-// use crate::{
-//     generation::generate::{generate, LocalProgressUpdate},
-//     spec::{
-//         project::ProjectFile,
-//         trajectory::{Sample, Trajectory, TrajectoryFile},
-//     },
-//     ChoreoError, ChoreoResult, ResultExt,
-// };
 use clap::Parser;
+use choreo_core::spec::trajectory::TrajectoryFile;
 
 const FORMATTING_OPTIONS: &str = "Formatting Options";
 const FILE_OPTIONS: &str = "File Options";
@@ -229,7 +218,7 @@ impl Cli {
 
                                     for (i, count) in control_intervals.iter().enumerate() {
                                         let waypoint = &mut bloop.params.waypoints[i];
-                                        if (waypoint.override_intervals && *count != waypoint.intervals) {
+                                        if waypoint.override_intervals && *count != waypoint.intervals {
                                             tracing::warn!("Control interval guessing did not ignore override intervals!");
                                         } else {
                                             waypoint.intervals = *count;
