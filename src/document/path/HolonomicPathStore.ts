@@ -27,6 +27,7 @@ import { ChoreoTrajectoryStore } from "./ChoreoTrajectoryStore";
 import { PathUIStore } from "./PathUIStore";
 import { findUUIDIndex } from "./utils";
 import { Commands } from "../tauriCommands";
+import { toast } from "react-toastify";
 export function waypointIDToText(
   id: WaypointUUID | undefined,
   points: IHolonomicWaypointStore[]
@@ -152,6 +153,7 @@ export const HolonomicPathStore = types
   .actions((self) => {
     return {
       processGenerationResult(ser: Trajectory) {
+        toast.error("PROCESSING GENERATION RESULT...");
         self.trajectory.deserialize(ser.trajectory);
         self.markers.forEach((m) => {
           const index = m.from.trajectoryTargetIndex;

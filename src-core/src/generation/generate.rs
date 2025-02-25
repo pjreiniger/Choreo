@@ -115,11 +115,13 @@ pub fn generate(
     mut trajectory_file: TrajectoryFile,
     handle: i64,
 ) -> ChoreoResult<TrajectoryFile> {
-    let mut original_file = trajectory_file.clone();
-
-    // these two functions can make changes to the trajectory file
+    // println!("\n\nCalling the common generate....");
+    println!("\n\n\n{:?}\n\n", chor);
+    // println!("\n\n\n {:?}\n\n", trajectory_file);
     set_initial_guess(&mut trajectory_file);
     adjust_headings(&mut trajectory_file)?;
+
+    // println!("\n\n\n {:?}", trajectory_file);
 
     let mut gen = TrajectoryFileGenerator::new(chor, trajectory_file, handle);
 
@@ -128,12 +130,9 @@ pub fn generate(
     gen.add_omni_transformer::<ConstraintSetter>();
     gen.add_omni_transformer::<CallbackSetter>();
 
-    match gen.generate() {
-        Err(e) => Err(e),
-        Ok(new_trajectory_file) => {
-            original_file.snapshot = new_trajectory_file.snapshot;
-            original_file.trajectory = new_trajectory_file.trajectory;
-            Ok(original_file)
-        }
-    }
+    let output = gen.generate();
+    let xxxx = output.unwrap();
+    println!("\n\nAfter Generate....{:?}", xxxx.params.waypoints);
+
+    Ok(xxxx)
 }

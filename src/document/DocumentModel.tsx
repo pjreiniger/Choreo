@@ -260,7 +260,7 @@ export const DocumentStore = types
         .then(
           (rust_trajectory) => {
             const result: Trajectory = rust_trajectory as Trajectory;
-            console.log(result);
+            toast.error("HELLO WORLD, GOT A RUST TRAJECTORY2");
             if (result.trajectory.samples.length == 0) throw "No trajectory";
             pathStore.processGenerationResult(result);
           },

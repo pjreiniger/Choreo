@@ -9,7 +9,19 @@ use choreo_core::{
     file_management::{self, WritingResources},
     generation::generate::generate,
     ChoreoError,
+    spec::{
+        project::ProjectFile,
+        trajectory::{Sample, Trajectory, TrajectoryFile},
+    },
 };
+// use crate::{
+//     generation::generate::{generate, LocalProgressUpdate},
+//     spec::{
+//         project::ProjectFile,
+//         trajectory::{Sample, Trajectory, TrajectoryFile},
+//     },
+//     ChoreoError, ChoreoResult, ResultExt,
+// };
 use clap::Parser;
 
 const FORMATTING_OPTIONS: &str = "Formatting Options";
@@ -194,8 +206,47 @@ impl Cli {
             let cln_trajectory_name = trajectory_name.clone();
             let handle =
                 thread::spawn(
-                    move || match generate(cln_project.clone(), trajectory, i as i64) {
+                    move || match generate(cln_project.clone(), trajectory.clone(), i as i64) {
                         Ok(new_trajectory) => {
+                            // let abcd = new_trajectory;
+                            // let abcd_traj = abcd.trajectory;
+                            let mut bloop =
+                                TrajectoryFile {
+                                    trajectory: new_trajectory.trajectory,
+                                    snapshot: Some(new_trajectory.params.snapshot()),
+                                    .. trajectory
+                                };
+                            let control_intervals = choreo_core::generation::intervals::guess_control_interval_counts(
+                                &cln_project.config.snapshot(),
+                                &bloop.params.snapshot(),
+                            );
+
+                            match control_intervals {
+                                Ok(control_intervals) => {
+                                    // for i in &control_intervals {
+                                    //     println!("----{:?}", i)
+                                    // }
+
+                                    for (i, count) in control_intervals.iter().enumerate() {
+                                        let waypoint = &mut bloop.params.waypoints[i];
+                                        if (waypoint.override_intervals && *count != waypoint.intervals) {
+                                            tracing::warn!("Control interval guessing did not ignore override intervals!");
+                                        } else {
+                                            waypoint.intervals = *count;
+                                        }
+                                        println!("Element at position {}: {:?}", i, count);
+                                    }
+                                }
+                                Err(e) => {
+                                    tracing::error!(
+                                        "00000000000000000000000y {:} for {:}: {:}",
+                                        cln_trajectory_name,
+                                        cln_project.name,
+                                        e
+                                    );
+                                }
+                            }
+
                             let runtime =
                                 choreo_core::tokio::runtime::Builder::new_current_thread()
                                     .enable_all()
@@ -204,7 +255,11 @@ impl Cli {
                             let write_result = runtime.block_on(
                                 file_management::write_trajectory_file_immediately(
                                     &cln_resources,
-                                    new_trajectory,
+                                    TrajectoryFile {
+                                        trajectory: bloop.trajectory,
+                                        snapshot: Some(bloop.params.snapshot()),
+                                        .. bloop
+                                    }
                                 ),
                             );
                             match write_result {
