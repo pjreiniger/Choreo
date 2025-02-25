@@ -196,28 +196,25 @@ impl Cli {
             let handle =
                 thread::spawn(
                     move || match generate(cln_project.clone(), trajectory.clone(), i as i64) {
-                        Ok(new_trajectory) => {
-                            // let abcd = new_trajectory;
-                            // let abcd_traj = abcd.trajectory;
-                            let mut bloop =
+                        Ok(regenerated_trajectory) => {
+
+                            // The raw generation has the opportunity to change waypoints to help massage the trajoptlib generation. We only care about adopting the generated trajectory
+                            let mut sanitized_regenerated_trajectory =
                                 TrajectoryFile {
-                                    trajectory: new_trajectory.trajectory,
-                                    snapshot: Some(new_trajectory.params.snapshot()),
+                                    trajectory: regenerated_trajectory.trajectory,
+                                    // snapshot: Some(regenerated_trajectory.params.snapshot()),
                                     .. trajectory
                                 };
+
+                            // The initial generation does not update the control intervals. This runs an initial guess pass for each waypoint on the sanitized version of the file in-place.
                             let control_intervals = choreo_core::generation::intervals::guess_control_interval_counts(
                                 &cln_project.config.snapshot(),
-                                &bloop.params.snapshot(),
+                                &sanitized_regenerated_trajectory.params.snapshot(),
                             );
-
                             match control_intervals {
                                 Ok(control_intervals) => {
-                                    // for i in &control_intervals {
-                                    //     println!("----{:?}", i)
-                                    // }
-
                                     for (i, count) in control_intervals.iter().enumerate() {
-                                        let waypoint = &mut bloop.params.waypoints[i];
+                                        let waypoint = &mut sanitized_regenerated_trajectory.params.waypoints[i];
                                         if waypoint.override_intervals && *count != waypoint.intervals {
                                             tracing::warn!("Control interval guessing did not ignore override intervals!");
                                         } else {
@@ -228,7 +225,7 @@ impl Cli {
                                 }
                                 Err(e) => {
                                     tracing::error!(
-                                        "00000000000000000000000y {:} for {:}: {:}",
+                                        "Guess intervals failed {:} for {:}: {:}",
                                         cln_trajectory_name,
                                         cln_project.name,
                                         e
@@ -241,13 +238,15 @@ impl Cli {
                                     .enable_all()
                                     .build()
                                     .expect("Failed to build tokio runtime");
+
+                            // Finally, we write the
                             let write_result = runtime.block_on(
                                 file_management::write_trajectory_file_immediately(
                                     &cln_resources,
                                     TrajectoryFile {
-                                        trajectory: bloop.trajectory,
-                                        snapshot: Some(bloop.params.snapshot()),
-                                        .. bloop
+                                        trajectory: sanitized_regenerated_trajectory.trajectory,
+                                        snapshot: Some(sanitized_regenerated_trajectory.params.snapshot()),
+                                        .. sanitized_regenerated_trajectory
                                     }
                                 ),
                             );
