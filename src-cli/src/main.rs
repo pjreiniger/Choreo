@@ -230,6 +230,12 @@ impl Cli {
                             }
                         }
 
+                        // Put the correct target timestamp in the events
+                        for event in &mut sanitized_regenerated_trajectory.events {
+                            let target = sanitized_regenerated_trajectory.trajectory.waypoints[event.from.target.unwrap()];
+                            event.from.target_timestamp = Some(target);
+                        }
+
                         let runtime = choreo_core::tokio::runtime::Builder::new_current_thread()
                             .enable_all()
                             .build()
