@@ -199,7 +199,6 @@ impl Cli {
                         // The raw generation has the opportunity to change waypoints to help massage the trajoptlib generation. We only care about adopting the generated trajectory
                         let mut sanitized_regenerated_trajectory = TrajectoryFile {
                             trajectory: regenerated_trajectory.trajectory,
-                            // snapshot: Some(regenerated_trajectory.params.snapshot()),
                             ..trajectory
                         };
 
@@ -219,7 +218,6 @@ impl Cli {
                                     } else {
                                         waypoint.intervals = *count;
                                     }
-                                    println!("Element at position {}: {:?}", i, count);
                                 }
                             }
                             Err(e) => {
@@ -237,7 +235,7 @@ impl Cli {
                             .build()
                             .expect("Failed to build tokio runtime");
 
-                        // Finally, we write the
+                        // Finally, we write the fully generated file to disk
                         let write_result =
                             runtime.block_on(file_management::write_trajectory_file_immediately(
                                 &cln_resources,
